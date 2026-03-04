@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
+
 
 import NoteList from "@/components/NoteList/NoteList";
 import SearchBox from "@/components/SearchBox/SearchBox";
@@ -15,11 +16,20 @@ import css from "./NotesPage.module.css";
 export default function NotesClient() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ["notes", page, search],
-    queryFn: () => fetchNotes(page, search),
+    queryKey: ["notes", page, debouncedSearch],
+    queryFn: () => fetchNotes(page, debouncedSearch),
   });
 
   if (isLoading) {
@@ -37,7 +47,6 @@ export default function NotesClient() {
       </button>
 
 <SearchBox
-  value={search}
   onChange={(value) => {
     setSearch(value);
     setPage(1);
@@ -46,11 +55,13 @@ export default function NotesClient() {
 
 <NoteList notes={data.notes} />
 
-<Pagination
-  pageCount={data.totalPages}
-  currentPage={page}
-  onPageChange={setPage}
-/>
+{data.totalPages > 1 && (
+  <Pagination
+    pageCount={data.totalPages}
+    currentPage={page}
+    onPageChange={setPage}
+  />
+)}
 
       {isOpen && (
         <Modal onClose={() => setIsOpen(false)}>
