@@ -27,10 +27,11 @@ export default function NotesClient() {
   return () => clearTimeout(timer);
 }, [search]);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["notes", page, debouncedSearch],
-    queryFn: () => fetchNotes(page, debouncedSearch),
-  });
+ const { data, isLoading, error } = useQuery({
+  queryKey: ["notes", page, debouncedSearch],
+  queryFn: () => fetchNotes(page, debouncedSearch),
+  placeholderData: (previousData) => previousData,
+});
 
   if (isLoading) {
     return <p>Loading, please wait...</p>;
